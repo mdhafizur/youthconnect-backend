@@ -10,7 +10,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.Cookie
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
@@ -22,8 +22,7 @@ import java.util.*
 @RequestMapping("auth")
 class AuthController(private val userService: UserService) {
 
-    @Value("\${jwt.secretKey}")
-    private lateinit var jwtSecretKey: String
+    private val secretKey = "secret"
 
     @PostMapping("register")
     fun register(@RequestBody body: RegisterDTO): ResponseEntity<User> {
@@ -47,7 +46,7 @@ class AuthController(private val userService: UserService) {
         val token = Jwts.builder()
             .setSubject(subject)
             .setExpiration(Date(System.currentTimeMillis() + 60 * 24 * 1000)) // 1 day
-            .signWith(SignatureAlgorithm.HS512, jwtSecretKey).compact()
+            .signWith(SignatureAlgorithm.HS512, secretKey).compact()
 
         val cookie = Cookie("token", token)
         cookie.isHttpOnly = true
@@ -67,7 +66,7 @@ class AuthController(private val userService: UserService) {
                 return ResponseEntity.status(401).body(Message("unauthenticated"))
             }
 
-            val claims = Jwts.parser().setSigningKey(jwtSecretKey).parseClaimsJws(token)
+            val claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token)
             val userId = claims.body.subject
 
             val user = userService.getUserById(userId)

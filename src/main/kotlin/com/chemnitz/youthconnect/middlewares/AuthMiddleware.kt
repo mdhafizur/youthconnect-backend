@@ -4,14 +4,12 @@ import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.beans.factory.annotation.Value
 import java.util.*
 
 @Component
 class AuthMiddleware : HandlerInterceptor {
 
-    @Value("\${jwt.secretKey}")
-    private lateinit var jwtSecretKey: String
+    private val secretKey = "secret"
 
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
         // Extract token from cookie
@@ -35,7 +33,7 @@ class AuthMiddleware : HandlerInterceptor {
             }
 
             // Parse the token
-            val claims = Jwts.parser().setSigningKey(jwtSecretKey).parseClaimsJws(token)
+            val claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token)
 
 
             val expiration = claims.body.expiration
