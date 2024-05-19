@@ -49,14 +49,11 @@ data class FavoriteFacility(
 )
 
 data class HomeAddress(
-    @Field("street")
-    val street: String?,
+    @Field("name")
+    val name: String?,
 
-    @Field("city")
-    val city: String?,
-
-    @Field("zipCode")
-    val zipCode: String?,
+    @Field("placeId")
+    val placeId: String?,
 
     @Field("coordinates")
     val coordinates: List<Double>

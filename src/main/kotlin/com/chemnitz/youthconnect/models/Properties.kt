@@ -11,15 +11,6 @@ data class Properties(
     @Field("TRAEGER")
     val traeger: String,
 
-    @Field("LEISTUNGEN")
-    val leistungen: String? = null,
-
-    @Field("BEZEICHNUNG")
-    val bezeichnung: String? = null,
-
-    @Field("KURZBEZEICHNUNG")
-    val kurzbezeichnung: String? = null,
-
     @Field("STRASSE")
     val strasse: String,
 
@@ -28,6 +19,15 @@ data class Properties(
 
     @Field("ORT")
     val ort: String,
+
+    @Field("LEISTUNGEN")
+    val leistungen: String? = null,
+
+    @Field("BEZEICHNUNG")
+    val bezeichnung: String? = null,
+
+    @Field("KURZBEZEICHNUNG")
+    val kurzbezeichnung: String? = null,
 
     @Field("TELEFON")
     val telefon: String? = null,
@@ -60,19 +60,19 @@ data class Properties(
     val www: String? = null,
 
     @Field("TRAEGERTYP")
-    val traegerTyp: Int,
+    val traegerTyp: Int? = null,
 
     @Field("BEZUGNR")
     val bezugNr: String? = null,
 
     @Field("GEBIETSARTNUMMER")
-    val gebietsArtNummer: Int,
+    val gebietsArtNummer: Int? = null,
 
     @Field("SNUMMER")
-    val sNummer: Int,
+    val sNummer: Int? = null,
 
     @Field("NUMMER")
-    val nummer: Int,
+    val nummer: Int? = null,
 
     @Field("GlobalID")
     val globalId: String? = null,
