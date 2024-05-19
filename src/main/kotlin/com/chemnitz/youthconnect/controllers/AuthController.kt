@@ -5,19 +5,25 @@ import com.chemnitz.youthconnect.dtos.Message
 import com.chemnitz.youthconnect.dtos.RegisterDTO
 import com.chemnitz.youthconnect.models.User
 import com.chemnitz.youthconnect.services.UserService
+import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.Cookie
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
+import java.security.SignatureException
 import java.util.*
 
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("auth")
 class AuthController(private val userService: UserService) {
+
+    @Value("\${jwt.secretKey}")
+    private lateinit var jwtSecretKey: String
 
     @PostMapping("register")
     fun register(@RequestBody body: RegisterDTO): ResponseEntity<User> {
@@ -36,14 +42,14 @@ class AuthController(private val userService: UserService) {
             return ResponseEntity.badRequest().body(Message("invalid password!"))
         }
 
-        val issuer = user._id.toString()
+        val subject = user._id.toString()
 
-        val jwt = Jwts.builder()
-            .setIssuer(issuer)
+        val token = Jwts.builder()
+            .setSubject(subject)
             .setExpiration(Date(System.currentTimeMillis() + 60 * 24 * 1000)) // 1 day
-            .signWith(SignatureAlgorithm.HS512, "secret").compact()
+            .signWith(SignatureAlgorithm.HS512, jwtSecretKey).compact()
 
-        val cookie = Cookie("jwt", jwt)
+        val cookie = Cookie("token", token)
         cookie.isHttpOnly = true
         cookie.path = "/api"
         cookie.secure = true
@@ -55,14 +61,14 @@ class AuthController(private val userService: UserService) {
     }
 
     @GetMapping("user")
-    fun user(@CookieValue("jwt") jwt: String?): ResponseEntity<Any> {
+    fun user(@CookieValue("token") token: String?): ResponseEntity<Any> {
         try {
-            if (jwt == null) {
+            if (token == null) {
                 return ResponseEntity.status(401).body(Message("unauthenticated"))
             }
 
-            val body = Jwts.parser().setSigningKey("secret").parseClaimsJws(jwt).body
-            val userId = body.issuer
+            val claims = Jwts.parser().setSigningKey(jwtSecretKey).parseClaimsJws(token)
+            val userId = claims.body.subject
 
             val user = userService.getUserById(userId)
 
@@ -71,6 +77,10 @@ class AuthController(private val userService: UserService) {
             }
 
             return ResponseEntity.ok(user)
+        } catch (e: ExpiredJwtException) {
+            return ResponseEntity.status(401).body(Message("expired token"))
+        } catch (e: SignatureException) {
+            return ResponseEntity.status(401).body(Message("invalid token signature"))
         } catch (e: Exception) {
             return ResponseEntity.status(401).body(Message("unauthenticated"))
         }
@@ -78,8 +88,12 @@ class AuthController(private val userService: UserService) {
 
     @PostMapping("logout")
     fun logout(response: HttpServletResponse): ResponseEntity<Any> {
-        val cookie = Cookie("jwt", "")
+        val cookie = Cookie("token", "")
+        cookie.isHttpOnly = true
+        cookie.path = "/api"
+        cookie.secure = true
         cookie.maxAge = 0
+        response.setHeader("Set-Cookie", "$cookie; SameSite=Lax") // Set SameSite to Lax
 
         response.addCookie(cookie)
 
