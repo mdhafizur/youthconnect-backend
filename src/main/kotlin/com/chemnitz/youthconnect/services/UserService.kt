@@ -2,7 +2,9 @@ package com.chemnitz.youthconnect.services
 
 import com.chemnitz.youthconnect.models.User
 import com.chemnitz.youthconnect.repositories.UserRepository
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 
 @Service
 class UserService(private val repository: UserRepository) {
@@ -19,7 +21,7 @@ class UserService(private val repository: UserRepository) {
             userToUpdate.homeAddress = updatedUser.homeAddress
             return repository.save(userToUpdate)
         } else {
-            throw RuntimeException("User with ID $userId not found")
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "User with ID $userId not found")
         }
     }
 
