@@ -28,7 +28,7 @@ data class User(
     var homeAddress: HomeAddress? = null
 ) {
     // Constructor to initialize email and password
-    constructor(email: String, password: String) : this(null, email, password, "active", null, null)
+    constructor(email: String) : this(null, email, null, "active", null, null)
 
     // Function to compare provided password with hashed password
     fun comparePassword(plainTextPassword: String): Boolean {

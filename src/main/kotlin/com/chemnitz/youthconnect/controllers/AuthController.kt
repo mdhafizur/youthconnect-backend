@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.Cookie
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
 import java.security.SignatureException
 import java.util.*
@@ -45,7 +44,8 @@ class AuthController(private val userService: UserService) {
                 ResponseEntity.status(HttpStatus.CONFLICT).body(null) // Or handle differently as needed
             }
         } else {
-            val user = User(email = body.email, password = BCryptPasswordEncoder().encode(body.password))
+            val user = User(email = body.email)
+            user.setPassword(body.password)
             val createdUser = userService.createUser(user)
             ResponseEntity.ok(createdUser)
         }

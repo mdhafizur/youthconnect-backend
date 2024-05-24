@@ -4,7 +4,6 @@ import com.chemnitz.youthconnect.dtos.UpdateUserDTO
 import com.chemnitz.youthconnect.models.User
 import com.chemnitz.youthconnect.repositories.UserRepository
 import org.springframework.http.HttpStatus
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 
@@ -20,9 +19,10 @@ class UserService(private val repository: UserRepository) {
             ResponseStatusException(HttpStatus.NOT_FOUND, "User with ID $userId not found")
         }
 
-        if (updatedUserDTO.newPassword != null && updatedUserDTO.oldPassword != null && updatedUserDTO.oldPassword!!.isNotBlank() && updatedUserDTO.newPassword!!.isNotBlank()) {
+        if (updatedUserDTO.newPassword != null && updatedUserDTO.oldPassword != null
+            && updatedUserDTO.oldPassword!!.isNotBlank() && updatedUserDTO.newPassword!!.isNotBlank()
+        ) {
             if (existingUser.comparePassword(updatedUserDTO.oldPassword!!)) {
-
                 existingUser.setPassword(updatedUserDTO.newPassword!!)
             } else {
                 throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect password")
