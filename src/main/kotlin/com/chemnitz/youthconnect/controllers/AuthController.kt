@@ -70,7 +70,7 @@ class AuthController(private val userService: UserService) {
         cookie.isHttpOnly = true
         cookie.path = "/api"
         cookie.secure = true
-        response.setHeader("Set-Cookie", "$cookie; SameSite=Lax") // Set SameSite to Lax
+        response.setHeader("Set-Cookie", "$cookie; SameSite=None") // Set SameSite to Lax
 
         response.addCookie(cookie)
         return ResponseEntity.ok(Message("Login successful"))
