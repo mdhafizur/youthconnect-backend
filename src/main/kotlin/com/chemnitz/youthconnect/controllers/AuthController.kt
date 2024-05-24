@@ -103,12 +103,11 @@ class AuthController(private val userService: UserService) {
 
     @PostMapping("logout")
     fun logout(response: HttpServletResponse): ResponseEntity<Any> {
-        val cookie = Cookie("token", "").apply {
-            isHttpOnly = true
-            path = "/api"
-            secure = true
-            maxAge = 0
-        }
+        val cookie = Cookie("token", "")
+        cookie.isHttpOnly = true
+        cookie.path = "/api"
+        cookie.secure = true
+        response.setHeader("Set-Cookie", "$cookie; SameSite=None") // Set SameSite to Lax
 
         response.addCookie(cookie)
 
