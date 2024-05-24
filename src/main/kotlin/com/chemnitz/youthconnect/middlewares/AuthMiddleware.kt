@@ -12,6 +12,11 @@ class AuthMiddleware : HandlerInterceptor {
     private val secretKey = "secret"
 
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
+        // Skip token validation for OPTIONS requests
+        if (request.method == "OPTIONS") {
+            return true
+        }
+
         // Extract token from cookie
         val cookies = request.cookies
         val tokenCookie = cookies?.find { it.name == "token" }
@@ -34,7 +39,6 @@ class AuthMiddleware : HandlerInterceptor {
 
             // Parse the token
             val claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token)
-
 
             val expiration = claims.body.expiration
             val now = Date()
