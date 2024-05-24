@@ -1,6 +1,7 @@
 package com.chemnitz.youthconnect.models
 
 import Properties
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.mapping.Field
@@ -12,9 +13,9 @@ data class User(
     val _id: String? = null,
 
     @Field("email")
-    val email: String,
+    var email: String,
 
-    @Field("password")
+    @field:JsonIgnore
     private var _password: String? = null, // Password field made optional
 
     @Field("status")
@@ -32,6 +33,17 @@ data class User(
     // Function to compare provided password with hashed password
     fun comparePassword(plainTextPassword: String): Boolean {
         return BCryptPasswordEncoder().matches(plainTextPassword, _password)
+    }
+
+    // Function to set the password with encryption
+    fun setPassword(plainTextPassword: String) {
+        _password = BCryptPasswordEncoder().encode(plainTextPassword)
+    }
+
+    // Function to get the password (needed for internal use)
+    @JsonIgnore
+    fun getPassword(): String? {
+        return _password
     }
 }
 

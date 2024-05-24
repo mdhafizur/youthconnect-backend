@@ -3,6 +3,7 @@ package com.chemnitz.youthconnect.controllers
 import com.chemnitz.youthconnect.dtos.LoginDTO
 import com.chemnitz.youthconnect.dtos.Message
 import com.chemnitz.youthconnect.dtos.RegisterDTO
+import com.chemnitz.youthconnect.dtos.UpdateUserDTO
 import com.chemnitz.youthconnect.models.User
 import com.chemnitz.youthconnect.services.UserService
 import io.jsonwebtoken.ExpiredJwtException
@@ -10,7 +11,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.Cookie
-import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
@@ -26,76 +27,92 @@ class AuthController(private val userService: UserService) {
 
     @PostMapping("register")
     fun register(@RequestBody body: RegisterDTO): ResponseEntity<User> {
-        val plainPassword = body.password
-        val encodedPassword = BCryptPasswordEncoder().encode(plainPassword)
-        val user = User(body.email, encodedPassword);
-        return ResponseEntity.ok(this.userService.createUser(user))
+        val existingUser = userService.getUserByEmail(body.email)
+
+        return if (existingUser != null) {
+            if (existingUser.status == "deleted") {
+                val updateUserDTO = UpdateUserDTO(
+                    existingUser._id,
+                    existingUser.email,
+                    body.password,
+                    "active",
+                    null,
+                    null
+                )
+                ResponseEntity.ok(userService.updateUser(updateUserDTO._id!!, updateUserDTO))
+            } else {
+                // User already exists and is active
+                ResponseEntity.status(HttpStatus.CONFLICT).body(null) // Or handle differently as needed
+            }
+        } else {
+            val user = User(email = body.email, password = BCryptPasswordEncoder().encode(body.password))
+            val createdUser = userService.createUser(user)
+            ResponseEntity.ok(createdUser)
+        }
     }
+
 
     @PostMapping("login")
     fun login(@RequestBody body: LoginDTO, response: HttpServletResponse): ResponseEntity<Any> {
-        val user = this.userService.getUserByEmail(body.email)
-            ?: return ResponseEntity.badRequest().body(Message("user not found!"))
+        val user = userService.getUserByEmail(body.email) ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(Message("User not found"))
 
         if (!user.comparePassword(body.password)) {
-            return ResponseEntity.badRequest().body(Message("invalid password!"))
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Message("Invalid password"))
         }
 
-        val subject = user._id.toString()
-
-        val token = Jwts.builder()
-            .setSubject(subject)
-            .setExpiration(Date(System.currentTimeMillis() + 60 * 24 * 1000)) // 1 day
+        val token = Jwts.builder().setSubject(user._id.toString())
+            .setExpiration(Date(System.currentTimeMillis() + 60 * 24 * 60 * 1000)) // 1 day
             .signWith(SignatureAlgorithm.HS512, secretKey).compact()
 
-        val cookie = Cookie("token", token)
-        cookie.isHttpOnly = true
-        cookie.path = "/api"
-        cookie.secure = true
-        response.setHeader("Set-Cookie", "$cookie; SameSite=Lax") // Set SameSite to Lax
+        val cookie = Cookie("token", token).apply {
+            isHttpOnly = true
+            path = "/api"
+            secure = true
+            maxAge = 24 * 60 * 60 // 1 day
+        }
 
         response.addCookie(cookie)
 
-        return ResponseEntity.ok(Message("success"))
+        return ResponseEntity.ok(Message("Login successful"))
     }
 
     @GetMapping("user")
-    fun user(@CookieValue("token") token: String?): ResponseEntity<Any> {
-        try {
+    fun getUser(@CookieValue("token") token: String?): ResponseEntity<Any> {
+        return try {
             if (token == null) {
-                return ResponseEntity.status(401).body(Message("unauthenticated"))
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Message("Token is null"))
             }
 
             val claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token)
             val userId = claims.body.subject
 
             val user = userService.getUserById(userId)
-
             if (user.status != "active") {
-                return ResponseEntity.status(401).body(Message("unauthenticated"))
+                ResponseEntity.status(HttpStatus.NOT_FOUND).body(Message("User not found"))
+            } else {
+                ResponseEntity.ok(user)
             }
-
-            return ResponseEntity.ok(user)
         } catch (e: ExpiredJwtException) {
-            return ResponseEntity.status(401).body(Message("expired token"))
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Message("Expired token"))
         } catch (e: SignatureException) {
-            return ResponseEntity.status(401).body(Message("invalid token signature"))
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Message("Invalid token signature"))
         } catch (e: Exception) {
-            return ResponseEntity.status(401).body(Message("unauthenticated"))
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Message("Unauthenticated"))
         }
     }
 
     @PostMapping("logout")
     fun logout(response: HttpServletResponse): ResponseEntity<Any> {
-        val cookie = Cookie("token", "")
-        cookie.isHttpOnly = true
-        cookie.path = "/api"
-        cookie.secure = true
-        cookie.maxAge = 0
-        response.setHeader("Set-Cookie", "$cookie; SameSite=Lax") // Set SameSite to Lax
+        val cookie = Cookie("token", "").apply {
+            isHttpOnly = true
+            path = "/api"
+            secure = true
+            maxAge = 0
+        }
 
         response.addCookie(cookie)
 
-        return ResponseEntity.ok(Message("success"))
+        return ResponseEntity.ok(Message("Logout successful"))
     }
 }
