@@ -19,6 +19,10 @@ class UserService(private val repository: UserRepository) {
             ResponseStatusException(HttpStatus.NOT_FOUND, "User with ID $userId not found")
         }
 
+        if (existingUser.status == "deleted") {
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "User with ID $userId not found")
+        }
+
         if (updatedUserDTO.newPassword != null && updatedUserDTO.oldPassword != null
             && updatedUserDTO.oldPassword!!.isNotBlank() && updatedUserDTO.newPassword!!.isNotBlank()
         ) {

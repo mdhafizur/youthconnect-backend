@@ -61,19 +61,18 @@ class AuthController(private val userService: UserService) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Message("Invalid password"))
         }
 
-        val token = Jwts.builder().setSubject(user._id.toString())
-            .setExpiration(Date(System.currentTimeMillis() + 60 * 24 * 60 * 1000)) // 1 day
+        val token = Jwts.builder()
+            .setSubject(user._id.toString())
+            .setExpiration(Date(System.currentTimeMillis() + 60 * 24 * 1000)) // 1 day
             .signWith(SignatureAlgorithm.HS512, secretKey).compact()
 
-        val cookie = Cookie("token", token).apply {
-            isHttpOnly = true
-            path = "/api"
-            secure = true
-            maxAge = 24 * 60 * 60 // 1 day
-        }
+        val cookie = Cookie("token", token)
+        cookie.isHttpOnly = true
+        cookie.path = "/api"
+        cookie.secure = true
+        response.setHeader("Set-Cookie", "$cookie; SameSite=Lax") // Set SameSite to Lax
 
         response.addCookie(cookie)
-
         return ResponseEntity.ok(Message("Login successful"))
     }
 
