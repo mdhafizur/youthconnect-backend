@@ -31,12 +31,7 @@ class AuthController(private val userService: UserService) {
         return if (existingUser != null) {
             if (existingUser.status == "deleted") {
                 val updateUserDTO = UpdateUserDTO(
-                    existingUser._id,
-                    existingUser.email,
-                    body.password,
-                    "active",
-                    null,
-                    null
+                    existingUser._id, existingUser.email, body.password, "active", null, null
                 )
                 ResponseEntity.ok(userService.updateUser(updateUserDTO._id!!, updateUserDTO))
             } else {
@@ -47,7 +42,7 @@ class AuthController(private val userService: UserService) {
             val user = User(email = body.email)
             user.setPassword(body.password)
             val createdUser = userService.createUser(user)
-            ResponseEntity.ok(createdUser)
+            ResponseEntity.status(HttpStatus.CREATED).body(createdUser)
         }
     }
 
@@ -63,6 +58,8 @@ class AuthController(private val userService: UserService) {
 
         val token = Jwts.builder()
             .setSubject(user._id.toString())
+            .claim("issuedAt", Date())
+            .claim("issuer", "YouthConnect")
             .setExpiration(Date(System.currentTimeMillis() + 60 * 24 * 1000)) // 1 day
             .signWith(SignatureAlgorithm.HS512, secretKey).compact()
 
@@ -73,7 +70,7 @@ class AuthController(private val userService: UserService) {
         response.setHeader("Set-Cookie", "$cookie; SameSite=None") // Set SameSite to Lax
 
         response.addCookie(cookie)
-        return ResponseEntity.ok(Message("Login successful"))
+        return ResponseEntity.status(HttpStatus.OK).body(Message("Login successful"))
     }
 
     @GetMapping("user")
@@ -110,7 +107,6 @@ class AuthController(private val userService: UserService) {
         response.setHeader("Set-Cookie", "$cookie; SameSite=None") // Set SameSite to Lax
 
         response.addCookie(cookie)
-
-        return ResponseEntity.ok(Message("Logout successful"))
+        return ResponseEntity.status(HttpStatus.OK).body(Message("Logout successful"))
     }
 }

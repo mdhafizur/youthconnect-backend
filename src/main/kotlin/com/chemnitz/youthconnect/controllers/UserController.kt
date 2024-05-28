@@ -1,5 +1,6 @@
 package com.chemnitz.youthconnect.controllers
 
+import com.chemnitz.youthconnect.dtos.Message
 import com.chemnitz.youthconnect.dtos.UpdateUserDTO
 import com.chemnitz.youthconnect.models.User
 import com.chemnitz.youthconnect.services.UserService
@@ -17,18 +18,12 @@ class UserController(private val userService: UserService) {
     }
 
     @GetMapping
-    fun getAllUsers(): ResponseEntity<List<User>> {
-        return ResponseEntity.ok(userService.getAllUsers())
-    }
-
-    @GetMapping("active")
-    fun getActiveUsers(): ResponseEntity<List<User>> {
-        return ResponseEntity.ok(userService.getAllUsersByStatus("active"))
-    }
-
-    @GetMapping("deleted")
-    fun getDeletedUsers(): ResponseEntity<List<User>> {
-        return ResponseEntity.ok(userService.getAllUsersByStatus("deleted"))
+    fun getAllUsers(@RequestParam(required = false) status: String?): ResponseEntity<List<User>> {
+        return if (status == null) {
+            ResponseEntity.ok(userService.getAllUsers())
+        } else {
+            ResponseEntity.status(HttpStatus.OK).body(userService.getAllUsersByStatus(status))
+        }
     }
 
     @PutMapping
@@ -44,6 +39,6 @@ class UserController(private val userService: UserService) {
 
     @GetMapping("{userId}")
     fun getUserById(@PathVariable userId: String): ResponseEntity<User> {
-        return ResponseEntity.ok(userService.getUserById(userId))
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getUserById(userId))
     }
 }
