@@ -47,6 +47,11 @@ chmod +x src/main/resources/datasource/sync.sh
 ./src/main/resources/datasource/sync.sh
 ```
 
+## To build this project using gradle use this command :
+```bash
+./gradlew build
+```
+
 ## To Run this project by this command : 
 ```bash
 ./gradlew clean bootRun

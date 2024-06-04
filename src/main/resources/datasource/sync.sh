@@ -1,7 +1,10 @@
 #!/bin/bash
 
 # Path to the application.properties file
-PROPERTIES_FILE="../application.properties"
+PROPERTIES_FILE="src/main/resources/application.properties"
+
+# Path to the directory containing GeoJSON files
+GEOJSON_DIR="src/main/resources/datasource"
 
 # Function to read a property value from the properties file
 get_property() {
@@ -14,10 +17,10 @@ MONGO_CONNECTION_STRING=$(get_property "spring.data.mongodb.uri")
 DATABASE_NAME=$(get_property "spring.data.mongodb.database")
 
 # GeoJSON files
-SCHULEN_GEOJSON="Schulen.geojson"
-KINDERGARTEN_GEOJSON="Kindertageseinrichtungen.geojson"
-JUGENDBERUFSHILFEN_GEOJSON="Jugendberufshilfen.geojson"
-SCHULSOZIALARBEIT_GEOJSON="Schulsozialarbeit.geojson"
+SCHULEN_GEOJSON="$GEOJSON_DIR/Schulen.geojson"
+KINDERGARTEN_GEOJSON="$GEOJSON_DIR/Kindertageseinrichtungen.geojson"
+JUGENDBERUFSHILFEN_GEOJSON="$GEOJSON_DIR/Jugendberufshilfen.geojson"
+SCHULSOZIALARBEIT_GEOJSON="$GEOJSON_DIR/Schulsozialarbeit.geojson"
 
 # Collection names
 SCHULEN_COLLECTION="schools"
