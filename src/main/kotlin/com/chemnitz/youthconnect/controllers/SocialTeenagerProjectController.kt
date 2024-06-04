@@ -5,7 +5,7 @@ import com.chemnitz.youthconnect.services.SocialTeenagerProjectService
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("social-teenager-projects")
+@RequestMapping("data/social-teenager-projects")
 class SocialTeenagerProjectController(private val service: SocialTeenagerProjectService) {
 
     @GetMapping

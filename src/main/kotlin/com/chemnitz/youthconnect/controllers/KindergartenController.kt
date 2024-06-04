@@ -5,7 +5,7 @@ import com.chemnitz.youthconnect.services.KindergartenService
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("kindergartens")
+@RequestMapping("data/kindergartens")
 class KindergartenController(private val service: KindergartenService) {
 
     @GetMapping

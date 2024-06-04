@@ -5,7 +5,7 @@ import com.chemnitz.youthconnect.services.SchoolService
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("schools")
+@RequestMapping("data/schools")
 
 class SchoolController(private val service: SchoolService) {
 

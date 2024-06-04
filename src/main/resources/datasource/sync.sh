@@ -25,7 +25,6 @@ KINDERGARTEN_COLLECTION="kindergartens"
 SCHULSOZIALARBEIT_COLLECTION="social_child_projects"
 JUGENDBERUFSHILFEN_COLLECTION="social_teenager_projects"
 
-
 # Check if MongoDB connection string is provided
 if [ -z "$MONGO_CONNECTION_STRING" ]; then
     echo "Error: MongoDB connection string not provided."
@@ -39,7 +38,7 @@ sync_geojson_to_mongodb() {
     echo "Syncing $GEOJSON_FILE to MongoDB Atlas..."
 
     # Preprocess JSON data to include _id field with the value of properties.OBJECTID
-    jq '.features[] | {_id: .properties.OBJECTID} + . ' "$GEOJSON_FILE" | mongoimport --uri "$MONGO_CONNECTION_STRING" --db "$DATABASE_NAME" --collection "$COLLECTION_NAME"
+    jq '.features[] | {_id: .properties.OBJECTID} + . ' "$GEOJSON_FILE" | mongoimport --uri "$MONGO_CONNECTION_STRING" --db "$DATABASE_NAME" --collection "$COLLECTION_NAME" --drop
 
     if [ $? -eq 0 ]; then
         echo "Data synced to MongoDB Atlas for collection: $COLLECTION_NAME"
