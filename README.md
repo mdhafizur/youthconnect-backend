@@ -6,7 +6,7 @@ pandoc youthconnect-api-docs.md -o youthconnect-api-docs.docx
 
 ## 1. Install Required Tools
 
-Ensure that `mongo`, `mongoimport`, and `jq` are installed on your system.
+Ensure that `mongoimport`, and `jq` are installed on your system.
 
 ### On Ubuntu/Debian
 ```bash
@@ -52,7 +52,7 @@ chmod +x src/main/resources/datasource/sync.sh
 ./gradlew build
 ```
 
-## To Run this project by this command : 
+## To Run this project by this command :
 ```bash
 ./gradlew clean bootRun
 ```
